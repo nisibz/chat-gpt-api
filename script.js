@@ -13,6 +13,7 @@ const HISTORY_DIR = "history";
 const HISTORY_FILE_PATH = `${HISTORY_DIR}/${currentDate}.json`;
 
 let inMemoryHistory = [];
+let conversationHistory = [];
 
 function createOpenAIApi(apiKey) {
   return new OpenAIApi(new Configuration({ apiKey }));
@@ -53,7 +54,7 @@ async function saveToHistory() {
 async function getOpenAIResponse(input) {
   const response = await openAi.createChatCompletion({
     model: "gpt-3.5-turbo",
-    messages: [{ role: "user", content: input }],
+    messages: [...conversationHistory, { role: "user", content: input }],
   });
   return response.data.choices[0].message.content;
 }
@@ -67,6 +68,9 @@ userInterface.on("line", async (input) => {
     console.log(output);
 
     inMemoryHistory.push({ input, output });
+
+    conversationHistory.push({ role: "user", content: input });
+    conversationHistory.push({ role: "assistant", content: output });
     await saveToHistory();
 
     userInterface.prompt();
