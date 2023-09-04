@@ -56,18 +56,22 @@ async function getOpenAIResponse(input) {
     model: "gpt-3.5-turbo",
     messages: [...conversationHistory, { role: "user", content: input }],
   });
-  return response.data.choices[0].message.content;
+  return {
+    output: response.data.choices[0].message.content,
+    usage: response.data.usage,
+  };
 }
 
 userInterface.on("line", async (input) => {
   try {
     process.stdout.write("Loading...");
-    const output = await getOpenAIResponse(input);
+    const { output, usage } = await getOpenAIResponse(input);
     process.stdout.clearLine(); // Clear the current line
     process.stdout.cursorTo(0); // Move the cursor to the beginning of the line
     console.log(output);
+    console.log(usage);
 
-    inMemoryHistory.push({ input, output });
+    inMemoryHistory.push({ input, output, usage });
 
     conversationHistory.push({ role: "user", content: input });
     conversationHistory.push({ role: "assistant", content: output });
