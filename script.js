@@ -62,6 +62,18 @@ async function getOpenAIResponse(input) {
   };
 }
 
+function calculateOpenAIAPICost(input, output) {
+  const inputPricePerKTokens = 0.0015;
+  const outputPricePerKTokens = 0.002;
+
+  const inputCost = (input / 1000) * inputPricePerKTokens;
+  const outputCost = (output / 1000) * outputPricePerKTokens;
+
+  const totalCost = inputCost + outputCost;
+
+  return totalCost;
+}
+
 userInterface.on("line", async (input) => {
   try {
     process.stdout.write("Loading...");
@@ -69,7 +81,14 @@ userInterface.on("line", async (input) => {
     process.stdout.clearLine(); // Clear the current line
     process.stdout.cursorTo(0); // Move the cursor to the beginning of the line
     console.log(output);
-    console.log(usage);
+    console.log(
+      Object.assign(usage, {
+        cost: calculateOpenAIAPICost(
+          usage.prompt_tokens,
+          usage.completion_tokens
+        ),
+      })
+    );
 
     inMemoryHistory.push({ input, output, usage });
 
